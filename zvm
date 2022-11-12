@@ -1,0 +1,136 @@
+#!/bin/bash
+CATALOG_URL="https://ziglang.org/download/index.json"
+echo downloading release catalog from $CATALOG_URL
+CATALOG=`curl -s -m 5 $CATALOG_URL`
+BUILDS="https://ziglang.org/builds/"
+P_VERSION=$1
+P_ARCH=$2
+PROC_ARCH=`uname -m`
+SYS_ARCH=$(uname | tr '[:upper:]' '[:lower:]')
+needed_archsys="$PROC_ARCH-$SYS_ARCH"
+ZIG_HOME=~/.zig
+
+# echo "
+#         P_VERSION =  $P_VERSION
+#            P_ARCH =  $P_ARCH
+# "
+all_releases="available releases"
+all_architectures="available system architecure builds (yours is $needed_archsys)"
+found_release=""
+found_architecture=""
+found_json=""
+for releaseName in `jq 'keys[]' <<< $CATALOG`
+do
+    RELEASE=`jq ".$releaseName" <<< $CATALOG`
+    name=`tr -d '"' <<< $releaseName`
+    date=`jq ".date" <<< $RELEASE`
+    docs=`jq ".docs" <<< $RELEASE`
+    src=`jq ".src" <<< $RELEASE`
+    stddocs=`jq ".stddocs" <<< $RELEASE`
+    version=`jq ".version" <<< $RELEASE`
+
+    # echo $RELEASE
+    if [ "$name" = "$P_VERSION" ]
+    then
+        all_releases="$all_releases
+        - $(printf %10s $name) (selected) [$0 $name]"
+        #echo $RELEASE
+        found_release=$name
+        all_architectures="$all_architectures for release $name"
+        #else
+            #echo "$name != $P_VERSION"
+        ARCH="     "
+        for archRef in `jq 'keys[]' <<< $RELEASE`
+        do
+            arch=`tr -d '"' <<< $archRef`
+            case $arch in
+                notes)
+                ;;
+                date)
+                ;;
+                docs)
+                ;;
+                src)
+                ;;
+                stdDocs)
+                ;;
+                version)
+                ;;
+                *)
+                    ARCH="$ARCH $arch"
+                    if [ "$arch" = "$needed_archsys" ]
+                    then
+                        all_architectures="$all_architectures
+                        - $(printf %20s $arch) (yours) [$0 $name $arch]"
+                        else
+                        all_architectures="$all_architectures
+                        - $(printf %20s $arch)         [$0 $name $arch]"
+                    fi
+                    if [ "$arch" = "$P_ARCH" ]
+                    then
+                        found_architecture=$arch
+                        echo "FOUND : $found_release / $found_architecture"
+                        echo "RELEASE : $RELEASE"
+                        found_json=`jq ".$archRef" <<< $RELEASE`
+                        echo "DETAILS : $found_json"
+                    fi
+                ;;
+            esac
+        done
+        else
+        all_releases="$all_releases
+        - $(printf %10s $name)            [$0 $name]"
+    fi
+###    echo "
+###---- ZIG RELEASE $name version:$version date:$date docs:$docs std documentation:$stddocs-------
+###     $ARCH
+###    "
+done
+
+if [ "$found_architecture" = "" ]
+then
+    if [ "$found_release" = "" ]
+    then
+        echo "release $P_VERSION not found
+        $all_releases"
+    else
+        echo "$all_architectures"
+        echo "$all_releases"
+    fi
+else
+    CDIR=`pwd`
+
+    #cd ZIG_HOME
+    echo "installing $found_release for $found_architecture in $ZIG_HOME"
+    echo "$found_json"
+    tarball=`jq '.tarball' <<< $found_json`
+    tarball=`tr -d '"' <<< $tarball`
+    # wget $tarball > 
+    filename=$(basename $tarball)
+    echo "filename : $filename"
+    dirname=`basename -- "$filename"`
+    extension="${dirname##*.}"
+    dirname="${dirname%.*}"
+    dirname="${dirname%.*}"
+    if test -f "$filename"
+    then
+        echo found file $filename
+    else
+        echo "downloading $tarball > $filename"
+        wget $tarball
+    fi
+    if test -f "$dirname"
+    then
+        echo remove existing installation $dirname
+        rm -rf $dirname
+    fi
+    echo "untar  $filename in $dirname"
+    tar -xf $filename
+    rm -rf zig
+    rm -rf $dirname/zig $dirname.zig
+    ln -s $dirname/zig $dirname.zig
+    ln -s $dirname.zig zig
+    #cd $CDIR
+    zig version
+fi
+

@@ -1,0 +1,2 @@
+# zvm
+zig version manager

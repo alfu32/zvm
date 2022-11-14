@@ -118,29 +118,29 @@ function install () {
     extension="${dirname##*.}"
     dirname="${dirname%.*}"
     dirname="${dirname%.*}"
-    if test -f "$filename"
-    then
-        echo found file $filename
-    else
-        echo "downloading $tarball > $filename"
-        wget $tarball
-    fi
     if test -f "$dirname"
     then
-        echo remove existing installation $dirname
-        rm -rf $dirname
+        echo switching to existing installation $dirname
+    else
+        if test -f "$filename"
+        then
+            echo found downloaded archive $filename
+        else
+            echo "downloading archive $filename"
+            curl $tarball -o $filename
+        fi
+        echo "extracting $filename in folder $dirname"
+        tar xf $filename
+        rm -rf zig
+        rm -rf $dirname.run
+        ln -s $dirname/zig $dirname.run
     fi
-    echo "untar  $filename in $dirname"
-    tar xf $filename
-    rm -rf zig
-    rm -rf $dirname.run
-    ln -s $dirname/zig $dirname.run
     ln -s $dirname.run zig
     cd $CDIR
     zig version
 }
 case $P_COMMAND  in
-    install)
+    select)
         get_data
         if [ "$found_architecture" = "" ]
         then
@@ -175,9 +175,10 @@ case $P_COMMAND  in
     ;;
     *)
         echo "commands :
-        install         installs the specified version and architecture
-        available       lists all avalable versions and system architectures
-        autoupdate      zvm updates itself
+        select          selects the specified version and architecture
+                        if the binary does not exist it will download it from $CATALOG_URL
+        available       lists all avalable versions and system architectures found at $CATALOG_URL
+        autoupdate      self update of zvm script
         "
     ;;
 esac

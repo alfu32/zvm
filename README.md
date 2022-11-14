@@ -11,8 +11,9 @@ curl https://raw.githubusercontent.com/alfu32/zvm/main/zvm > zvm
 
 ## usage 
 run `zvm` to get available options
-```output
+```text
 commands :
+        version         prints the version of the current script
         install         installs the specified version and architecture
         available       lists all avalable versions and system architectures
         autoupdate      zvm updates itself

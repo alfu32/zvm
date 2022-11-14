@@ -178,7 +178,7 @@ case $P_COMMAND  in
         cd $CDIR
     ;;
     version)
-        echo "zvm zig version switcher/installer v0.1.1"
+        echo "zvm zig version switcher/installer v0.1.4"
     ;;
     *)
         echo "commands :

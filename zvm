@@ -179,6 +179,7 @@ case $P_COMMAND  in
     ;;
     version)
         echo "zvm zig version switcher/installer v0.1.1"
+    ;;
     *)
         echo "commands :
         version         prints the version of the current script

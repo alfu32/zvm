@@ -33,10 +33,13 @@ calling zvm without full parameters will not do any change.
 
 #### caching
     if the archive or folder do exist, zvm will not download or extract but only relink zig to the specified version.
-    
+
 ### `zvm available` command 
 when executed without prameters it lists all available versions
 when executed with a specified version `zvm available 0.10.0` it will list all available packages for that version
+
+### `zvm version` command 
+prints the version of the current script
 
 ## notes
  - if the downloaded version exists it will be replaced

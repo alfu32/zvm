@@ -28,6 +28,7 @@ found_release=""
 found_architecture=""
 found_json=""
 function get_data () {
+    cd $ZIG_HOME
     if test -f CATALOG.json 
     then
         echo using local catalog
@@ -103,6 +104,7 @@ function get_data () {
     ###     $ARCH
     ###    "
     done
+    cd $CDIR
 }
 function install () {
 
@@ -118,23 +120,25 @@ function install () {
     extension="${dirname##*.}"
     dirname="${dirname%.*}"
     dirname="${dirname%.*}"
-    if test -f "$dirname"
+    if test -d "$dirname"
     then
         echo switching to existing installation $dirname
     else
+        echo could not find $dirname
         if test -f "$filename"
         then
             echo found downloaded archive $filename
         else
+            echo could not find $filename
             echo "downloading archive $filename"
             curl $tarball -o $filename
         fi
         echo "extracting $filename in folder $dirname"
         tar xf $filename
-        rm -rf zig
         rm -rf $dirname.run
         ln -s $dirname/zig $dirname.run
     fi
+    rm -rf zig
     ln -s $dirname.run zig
     cd $CDIR
     zig version
@@ -173,8 +177,11 @@ case $P_COMMAND  in
         chmod +x zvm
         cd $CDIR
     ;;
+    version)
+        echo "zvm zig version switcher/installer v0.1.1"
     *)
         echo "commands :
+        version         prints the version of the current script
         select          selects the specified version and architecture
                         if the binary does not exist it will download it from $CATALOG_URL
         available       lists all avalable versions and system architectures found at $CATALOG_URL

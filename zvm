@@ -14,6 +14,18 @@ then
     export ZIG_HOME=~/.zig
     echo "ZIG_HOME environment variable not found"
     echo "setting ZIG_HOME to default $ZIG_HOME"
+    if test -d "$ZIG_HOME"
+    then
+        echo "found ZIG_HOME at $ZIG_HOME"
+        else
+        echo "creating ZIG_HOME at $ZIG_HOME"
+        mkdir $ZIG_HOME
+        cp $0 $ZIG_HOME/
+        echo "export ZIG_HOME=~/.zig\nexport PATH=\"\$PATH:\$ZIG_HOME\"" > $ZIG_HOME/env
+        echo "register ZIG environment variables in .profile or .bashrc"
+        echo " adding the following line at the end of the file"
+        echo ". \"\$HOME/.zig/env\""
+    fi
     else
     echo "found ZIG_HOME at $ZIG_HOME"
 fi
